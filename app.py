@@ -83,7 +83,7 @@ def submit():
     except Exception as e:
         print(f"Database error: {e}")
         if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
-            return jsonify({'status': 'error', 'message': 'An error occurred while saving your feedback.'}), 500
+            return jsonify({'status': 'error', 'message': f'Database error: {str(e)}'}), 500
         flash("An error occurred while saving your feedback.", "error")
         return redirect(url_for('index'))
     
