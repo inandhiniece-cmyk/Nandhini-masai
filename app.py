@@ -2,12 +2,14 @@ import sqlite3
 import os
 import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from flask_cors import CORS
 
 # Load hidden environment variables
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 # Secret key for session/flash messages. In production, use os.environ.get('SECRET_KEY')
 app.secret_key = 'super_secret_feedback_key_123'
 
@@ -60,6 +62,8 @@ def submit():
     experience = request.form.get('experience', '').strip()
     
     if not student_name or not email or not rating:
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+            return jsonify({'status': 'error', 'message': 'Please fill out all required fields.'}), 400
         flash("Please fill out all required fields.", "error")
         return redirect(url_for('index'))
     
@@ -73,13 +77,18 @@ def submit():
         conn.commit()
         conn.close()
     except Exception as e:
-        flash("An error occurred while saving your feedback.", "error")
         print(f"Database error: {e}")
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+            return jsonify({'status': 'error', 'message': 'An error occurred while saving your feedback.'}), 500
+        flash("An error occurred while saving your feedback.", "error")
         return redirect(url_for('index'))
     
     # Send Telegram notification
     send_telegram_message(student_name, rating, experience)
     
+    if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        return jsonify({'status': 'success', 'message': 'Thank you! Your feedback has been submitted successfully.'}), 200
+        
     flash("Thank you! Your feedback has been submitted successfully.", "success")
     return redirect(url_for('index'))
 
