@@ -15,6 +15,10 @@ app.secret_key = 'super_secret_feedback_key_123'
 
 DB_PATH = 'feedback.db'
 
+# Initialize database tables if they don't exist
+import init_db
+init_db.init_db()
+
 # Telegram Configuration
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
